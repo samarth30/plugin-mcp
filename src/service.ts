@@ -1,4 +1,4 @@
-import { type IAgentRuntime, Service, logger } from "@elizaos/core";
+import { type IAgentRuntime, Service, logger } from "@elizaos/core-plugin-v2";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";

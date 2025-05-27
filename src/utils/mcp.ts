@@ -5,7 +5,7 @@ import {
   ModelType,
   type State,
   logger,
-} from "@elizaos/core";
+} from "@elizaos/core-plugin-v2";
 import {
   DEFAULT_MAX_RETRIES,
   type McpProvider,

@@ -7,7 +7,7 @@ import {
   type State,
   composePromptFromState,
   logger,
-} from "@elizaos/core";
+} from "@elizaos/core-plugin-v2";
 import type { McpService } from "../service";
 import { resourceSelectionTemplate } from "../templates/resourceSelectionTemplate";
 import { MCP_SERVICE_NAME } from "../types";

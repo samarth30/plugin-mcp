@@ -1,4 +1,4 @@
-import { type IAgentRuntime, type Plugin, logger } from "@elizaos/core";
+import { type IAgentRuntime, type Plugin, logger } from "@elizaos/core-plugin-v2";
 import { callToolAction } from "./actions/callToolAction";
 import { readResourceAction } from "./actions/readResourceAction";
 import { provider } from "./provider";

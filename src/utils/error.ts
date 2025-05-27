@@ -5,8 +5,8 @@ import {
   ModelType,
   composePromptFromState,
   logger,
-} from "@elizaos/core";
-import type { State } from "@elizaos/core";
+} from "@elizaos/core-plugin-v2";
+import type { State } from "@elizaos/core-plugin-v2";
 import { errorAnalysisPrompt } from "../templates/errorAnalysisPrompt";
 import type { McpProvider } from "../types";
 

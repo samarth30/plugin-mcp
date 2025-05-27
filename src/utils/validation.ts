@@ -1,4 +1,4 @@
-import type { State } from "@elizaos/core";
+import type { State } from "@elizaos/core-plugin-v2";
 import { type McpProviderData, ResourceSelectionSchema, ToolSelectionSchema } from "../types";
 import { validateJsonSchema } from "./json";
 

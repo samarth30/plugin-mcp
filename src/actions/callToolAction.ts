@@ -6,7 +6,7 @@ import {
   ModelType,
   type State,
   logger,
-} from "@elizaos/core";
+} from "@elizaos/core-plugin-v2";
 import type { McpService } from "../service";
 import { toolSelectionTemplate } from "../templates/toolSelectionTemplate";
 import { MCP_SERVICE_NAME } from "../types";
@@ -32,7 +32,7 @@ function createToolSelectionPrompt(
   });
 }
 
-import { composePromptFromState } from "@elizaos/core";
+import { composePromptFromState } from "@elizaos/core-plugin-v2";
 
 export const callToolAction: Action = {
   name: "CALL_TOOL",
@@ -51,15 +51,21 @@ export const callToolAction: Action = {
 
   validate: async (runtime: IAgentRuntime, _message: Memory, _state?: State): Promise<boolean> => {
     const mcpService = runtime.getService<McpService>(MCP_SERVICE_NAME);
-    if (!mcpService) return false;
+    if (!mcpService) {
+      logger.debug("MCP service not found in validate");
+      return false;
+    }
 
     const servers = mcpService.getServers();
-    return (
+    const isValid = (
       servers.length > 0 &&
       servers.some(
         (server) => server.status === "connected" && server.tools && server.tools.length > 0
       )
     );
+    
+    logger.debug(`CALL_TOOL validation result: ${isValid}, servers: ${servers.length}`);
+    return isValid;
   },
 
   handler: async (
