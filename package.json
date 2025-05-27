@@ -1,15 +1,18 @@
 {
-  "name": "@elizaos/eliza-plugin-mcp",
+  "name": "@elizaos/plugin-mcp",
   "description": "ElizaOS plugin to integrate with MCP (Model Context Protocol) servers",
   "module": "dist/index.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
-  "version": "0.0.8",
+  "version": "1.0.0-beta.54",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/elizaos-plugins/plugin-mcp.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "tags": [
     "mcp",
