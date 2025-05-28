@@ -3,6 +3,7 @@ import { callToolAction } from "./actions/callToolAction";
 import { readResourceAction } from "./actions/readResourceAction";
 import { provider } from "./provider";
 import { McpService } from "./service";
+import mcpPluginTestSuite from "./test.ts";
 
 const mcpPlugin: Plugin = {
   name: "mcp",
@@ -15,6 +16,7 @@ const mcpPlugin: Plugin = {
   services: [McpService],
   actions: [callToolAction, readResourceAction],
   providers: [provider],
+  tests: [mcpPluginTestSuite]
 };
 
 export type { McpService };

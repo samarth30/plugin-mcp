@@ -177,3 +177,5 @@ dist
 # Bun
 .bun
 bun.lockb
+.eliza*
+.elizadb*
