@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
-  "version": "1.0.0-beta.55",
+  "version": "1.0.0-beta.71",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -33,6 +33,7 @@
     "release:patch": "bun run version:patch && git push --follow-tags",
     "release:minor": "bun run version:minor && git push --follow-tags",
     "release:major": "bun run version:major && git push --follow-tags",
+    "clean": "rm -rf dist .turbo node_modules .turbo-tsconfig.json tsconfig.tsbuildinfo",
     "test": "elizaos test"
   },
   "devDependencies": {
@@ -43,13 +44,6 @@
   },
   "dependencies": {
     "@elizaos/core-plugin-v2": "^1.0.0-beta.58",
-    "@elizaos/plugin-anthropic": "^1.0.0-beta.52",
-    "@elizaos/plugin-bootstrap": "^1.0.0-beta.76",
-    "@elizaos/plugin-knowledge": "^1.0.0-beta.73",
-    "@elizaos/plugin-local-ai": "^1.0.0-beta.71",
-    "@elizaos/plugin-openai": "^1.0.0-beta.72",
-    "@elizaos/plugin-telegram": "^1.0.0-beta.53",
-    "@elizaos/plugin-twitter": "^1.0.0-beta.55",
     "@modelcontextprotocol/sdk": "^1.7.0",
     "ajv": "^8.17.1",
     "json5": "^2.2.3"
