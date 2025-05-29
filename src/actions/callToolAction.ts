@@ -13,12 +13,19 @@ import { MCP_SERVICE_NAME } from "../types";
 import { handleMcpError } from "../utils/error";
 import { withModelRetry } from "../utils/mcp";
 import { handleToolResponse, processToolResult } from "../utils/processing";
-import { createToolSelectionFeedbackPrompt, validateToolSelection } from "../utils/validation";
+import {
+  createToolSelectionFeedbackPrompt,
+  validateToolSelection,
+} from "../utils/validation";
 import type { ToolSelection } from "../utils/validation";
 
 function createToolSelectionPrompt(
   state: State,
-  mcpProvider: { values: { mcp: unknown }; data: { mcp: unknown }; text: string }
+  mcpProvider: {
+    values: { mcp: unknown };
+    data: { mcp: unknown };
+    text: string;
+  },
 ): string {
   return composePromptFromState({
     state: {
@@ -49,7 +56,11 @@ export const callToolAction: Action = {
   ],
   description: "Calls a tool from an MCP server to perform a specific task",
 
-  validate: async (runtime: IAgentRuntime, _message: Memory, _state?: State): Promise<boolean> => {
+  validate: async (
+    runtime: IAgentRuntime,
+    _message: Memory,
+    _state?: State,
+  ): Promise<boolean> => {
     const mcpService = runtime.getService<McpService>(MCP_SERVICE_NAME);
     if (!mcpService) {
       logger.debug("MCP service not found in validate");
@@ -57,14 +68,18 @@ export const callToolAction: Action = {
     }
 
     const servers = mcpService.getServers();
-    const isValid = (
+    const isValid =
       servers.length > 0 &&
       servers.some(
-        (server) => server.status === "connected" && server.tools && server.tools.length > 0
-      )
+        (server) =>
+          server.status === "connected" &&
+          server.tools &&
+          server.tools.length > 0,
+      );
+
+    logger.debug(
+      `CALL_TOOL validation result: ${isValid}, servers: ${servers.length}`,
     );
-    
-    logger.debug(`CALL_TOOL validation result: ${isValid}, servers: ${servers.length}`);
     return isValid;
   },
 
@@ -73,9 +88,12 @@ export const callToolAction: Action = {
     message: Memory,
     _state?: State,
     _options?: { [key: string]: unknown },
-    callback?: HandlerCallback
+    callback?: HandlerCallback,
   ): Promise<boolean> => {
-    const composedState = await runtime.composeState(message, ["RECENT_MESSAGES", "MCP"]);
+    const composedState = await runtime.composeState(message, [
+      "RECENT_MESSAGES",
+      "MCP",
+    ]);
 
     const mcpService = runtime.getService<McpService>(MCP_SERVICE_NAME);
     if (!mcpService) {
@@ -85,7 +103,10 @@ export const callToolAction: Action = {
     const mcpProvider = mcpService.getProviderData();
 
     try {
-      const toolSelectionPrompt = createToolSelectionPrompt(composedState, mcpProvider);
+      const toolSelectionPrompt = createToolSelectionPrompt(
+        composedState,
+        mcpProvider,
+      );
 
       logger.info(`Tool selection prompt: ${toolSelectionPrompt}`);
 
@@ -100,9 +121,14 @@ export const callToolAction: Action = {
         message,
         composedState,
         (originalResponse, errorMessage, state, userMessage) =>
-          createToolSelectionFeedbackPrompt(originalResponse, errorMessage, state, userMessage),
+          createToolSelectionFeedbackPrompt(
+            originalResponse,
+            errorMessage,
+            state,
+            userMessage,
+          ),
         callback,
-        "I'm having trouble figuring out the best way to help with your request. Could you provide more details about what you're looking for?"
+        "I'm having trouble figuring out the best way to help with your request. Could you provide more details about what you're looking for?",
       );
 
       if (!parsedSelection || parsedSelection.noToolAvailable) {
@@ -117,13 +143,24 @@ export const callToolAction: Action = {
         return true;
       }
 
-      const { serverName, toolName, arguments: toolArguments, reasoning } = parsedSelection;
+      const {
+        serverName,
+        toolName,
+        arguments: toolArguments,
+        reasoning,
+      } = parsedSelection;
 
-      logger.debug(`Selected tool "${toolName}" on server "${serverName}" because: ${reasoning}`);
-
-      const result = await mcpService.callTool(serverName, toolName, toolArguments);
       logger.debug(
-        `Called tool ${toolName} on server ${serverName} with arguments ${JSON.stringify(toolArguments)}`
+        `Selected tool "${toolName}" on server "${serverName}" because: ${reasoning}`,
+      );
+
+      const result = await mcpService.callTool(
+        serverName,
+        toolName,
+        toolArguments,
+      );
+      logger.debug(
+        `Called tool ${toolName} on server ${serverName} with arguments ${JSON.stringify(toolArguments)}`,
       );
 
       const { toolOutput, hasAttachments, attachments } = processToolResult(
@@ -131,7 +168,7 @@ export const callToolAction: Action = {
         serverName,
         toolName,
         runtime,
-        message.entityId
+        message.entityId,
       );
 
       await handleToolResponse(
@@ -145,12 +182,20 @@ export const callToolAction: Action = {
         attachments,
         composedState,
         mcpProvider,
-        callback
+        callback,
       );
 
       return true;
     } catch (error) {
-      return handleMcpError(composedState, mcpProvider, error, runtime, message, "tool", callback);
+      return handleMcpError(
+        composedState,
+        mcpProvider,
+        error,
+        runtime,
+        message,
+        "tool",
+        callback,
+      );
     }
   },
 

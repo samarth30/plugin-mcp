@@ -1,4 +1,9 @@
-import type { IAgentRuntime, Memory, Provider, State } from "@elizaos/core-plugin-v2";
+import type {
+  IAgentRuntime,
+  Memory,
+  Provider,
+  State,
+} from "@elizaos/core-plugin-v2";
 import type { McpService } from "./service";
 import { MCP_SERVICE_NAME } from "./types";
 

@@ -1,49 +1,57 @@
 {
   "name": "@elizaos/plugin-mcp",
-  "description": "ElizaOS plugin to integrate with MCP (Model Context Protocol) servers",
-  "module": "dist/index.js",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "type": "module",
   "version": "1.0.0-beta.71",
-  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js", 
+  "types": "dist/index.d.ts",
+  "description": "ElizaOS plugin to integrate with MCP (Model Context Protocol) servers",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "@elizaos/source": "./src/index.ts",
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/elizaos-plugins/plugin-mcp.git"
   },
-  "publishConfig": {
-    "access": "public"
-  },
   "tags": [
     "mcp",
-    "model",
+    "model", 
     "context",
     "protocol",
     "elizaos-plugins"
   ],
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target node --minify --treeshake",
-    "types": "bunx tsc --emitDeclarationOnly --outDir ./dist",
-    "check:write": "bunx @biomejs/biome check --write ./src",
-    "check": "bunx @biomejs/biome check ./src",
-    "ci": "bunx @biomejs/biome ci ./src",
-    "version:patch": "bunx bumpp patch --tag -y",
-    "version:minor": "bunx bumpp minor --tag -y",
-    "version:major": "bunx bumpp major --tag -y",
-    "release:patch": "bun run version:patch && git push --follow-tags",
-    "release:minor": "bun run version:minor && git push --follow-tags",
-    "release:major": "bun run version:major && git push --follow-tags",
-    "clean": "rm -rf dist .turbo node_modules .turbo-tsconfig.json tsconfig.tsbuildinfo",
-    "test": "elizaos test"
+    "build": "tsup",
+    "dev": "tsup --format esm --dts --watch",
+    "test": "elizaos test",
+    "lint": "prettier --write ./src",
+    "format": "prettier --write ./src",
+    "format:check": "prettier --check ./src",
+    "clean": "rm -rf dist .turbo node_modules .turbo-tsconfig.json tsconfig.tsbuildinfo"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@types/bun": "1.2.5",
     "bumpp": "10.1.0",
+    "prettier": "3.5.3",
+    "tsup": "^8.4.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@elizaos/core-plugin-v2": "^1.0.0-beta.58",
+    "@elizaos/core-plugin-v2": "^1.0.0-beta",
     "@modelcontextprotocol/sdk": "^1.7.0",
     "ajv": "^8.17.1",
     "json5": "^2.2.3"
@@ -51,5 +59,6 @@
   "agentConfig": {
     "pluginType": "elizaos:plugin:1.0.0",
     "pluginParameters": {}
-  }
+  },
+  "license": "MIT"
 }

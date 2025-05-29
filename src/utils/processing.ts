@@ -7,7 +7,8 @@ import {
   ModelType,
   createUniqueUuid,
   logger,
-  type State, composePromptFromState
+  type State,
+  composePromptFromState,
 } from "@elizaos/core-plugin-v2";
 import { resourceAnalysisTemplate } from "../templates/resourceAnalysisTemplate";
 import { toolReasoningTemplate } from "../templates/toolReasoningTemplate";
@@ -22,7 +23,7 @@ export function processResourceResult(
       blob?: string;
     }>;
   },
-  uri: string
+  uri: string,
 ): { resourceContent: string; resourceMeta: string } {
   let resourceContent = "";
   let resourceMeta = "";
@@ -61,7 +62,7 @@ export function processToolResult(
   serverName: string,
   toolName: string,
   runtime: IAgentRuntime,
-  messageEntityId: string
+  messageEntityId: string,
 ): { toolOutput: string; hasAttachments: boolean; attachments: Media[] } {
   let toolOutput = "";
   let hasAttachments = false;
@@ -101,18 +102,25 @@ export async function handleResourceAnalysis(
   serverName: string,
   resourceContent: string,
   resourceMeta: string,
-  callback?: HandlerCallback
+  callback?: HandlerCallback,
 ): Promise<void> {
-  await createMcpMemory(runtime, message, "resource", serverName, resourceContent, {
-    uri,
-    isResourceAccess: true,
-  });
+  await createMcpMemory(
+    runtime,
+    message,
+    "resource",
+    serverName,
+    resourceContent,
+    {
+      uri,
+      isResourceAccess: true,
+    },
+  );
 
   const analysisPrompt = createAnalysisPrompt(
     uri,
     message.content.text || "",
     resourceContent,
-    resourceMeta
+    resourceMeta,
   );
 
   const analyzedResponse = await runtime.useModel(ModelType.TEXT_SMALL, {
@@ -143,7 +151,7 @@ export async function handleToolResponse(
     data: { mcp: unknown };
     text: string;
   },
-  callback?: HandlerCallback
+  callback?: HandlerCallback,
 ): Promise<void> {
   await createMcpMemory(runtime, message, "tool", serverName, toolOutput, {
     toolName,
@@ -158,7 +166,7 @@ export async function handleToolResponse(
     serverName,
     message.content.text || "",
     toolOutput,
-    hasAttachments
+    hasAttachments,
   );
 
   logger.info("reasoning prompt: ", reasoningPrompt);
@@ -177,7 +185,9 @@ export async function handleToolResponse(
   }
 }
 
-export async function sendInitialResponse(callback?: HandlerCallback): Promise<void> {
+export async function sendInitialResponse(
+  callback?: HandlerCallback,
+): Promise<void> {
   if (callback) {
     const responseContent: Content = {
       thought:
@@ -193,7 +203,7 @@ function createAnalysisPrompt(
   uri: string,
   userMessage: string,
   resourceContent: string,
-  resourceMeta: string
+  resourceMeta: string,
 ): string {
   const enhancedState: State = {
     data: {},
@@ -223,7 +233,7 @@ function createReasoningPrompt(
   serverName: string,
   userMessage: string,
   toolOutput: string,
-  hasAttachments: boolean
+  hasAttachments: boolean,
 ): string {
   const enhancedState: State = {
     ...state,

@@ -1,4 +1,8 @@
-import { type IAgentRuntime, type Plugin, logger } from "@elizaos/core-plugin-v2";
+import {
+  type IAgentRuntime,
+  type Plugin,
+  logger,
+} from "@elizaos/core-plugin-v2";
 import { callToolAction } from "./actions/callToolAction";
 import { readResourceAction } from "./actions/readResourceAction";
 import { provider } from "./provider";
@@ -16,7 +20,7 @@ const mcpPlugin: Plugin = {
   services: [McpService],
   actions: [callToolAction, readResourceAction],
   providers: [provider],
-  tests: [mcpPluginTestSuite]
+  tests: [mcpPluginTestSuite],
 };
 
 export type { McpService };

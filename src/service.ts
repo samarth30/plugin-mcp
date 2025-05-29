@@ -30,7 +30,8 @@ import { buildMcpProviderData } from "./utils/mcp";
 
 export class McpService extends Service {
   static serviceType: string = MCP_SERVICE_NAME;
-  capabilityDescription = "Enables the agent to interact with MCP (Model Context Protocol) servers";
+  capabilityDescription =
+    "Enables the agent to interact with MCP (Model Context Protocol) servers";
 
   private connections: Map<string, McpConnection> = new Map();
   private connectionStates: Map<string, ConnectionState> = new Map();
@@ -76,7 +77,7 @@ export class McpService extends Service {
     } catch (error) {
       logger.error(
         "Failed to initialize MCP servers:",
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error.message : String(error),
       );
     }
   }
@@ -86,7 +87,7 @@ export class McpService extends Service {
   }
 
   private async updateServerConnections(
-    serverConfigs: Record<string, McpServerConfig>
+    serverConfigs: Record<string, McpServerConfig>,
   ): Promise<void> {
     const currentNames = new Set(this.connections.keys());
     const newNames = new Set(Object.keys(serverConfigs));
@@ -106,7 +107,7 @@ export class McpService extends Service {
         } catch (error) {
           logger.error(
             `Failed to connect to new MCP server ${name}:`,
-            error instanceof Error ? error.message : String(error)
+            error instanceof Error ? error.message : String(error),
           );
         }
       } else if (JSON.stringify(config) !== currentConnection.server.config) {
@@ -117,14 +118,17 @@ export class McpService extends Service {
         } catch (error) {
           logger.error(
             `Failed to reconnect MCP server ${name}:`,
-            error instanceof Error ? error.message : String(error)
+            error instanceof Error ? error.message : String(error),
           );
         }
       }
     }
   }
 
-  private async initializeConnection(name: string, config: McpServerConfig): Promise<void> {
+  private async initializeConnection(
+    name: string,
+    config: McpServerConfig,
+  ): Promise<void> {
     await this.deleteConnection(name); // Clean up if exists
     const state: ConnectionState = {
       status: "connecting",
@@ -135,7 +139,7 @@ export class McpService extends Service {
     try {
       const client = new Client(
         { name: "ElizaOS", version: "1.0.0" },
-        { capabilities: {} }
+        { capabilities: {} },
       );
       const transport: StdioClientTransport | SSEClientTransport =
         config.type === "stdio"
@@ -170,13 +174,18 @@ export class McpService extends Service {
       logger.info(`Successfully connected to MCP server: ${name}`);
     } catch (error) {
       state.status = "disconnected";
-      state.lastError = error instanceof Error ? error : new Error(String(error));
+      state.lastError =
+        error instanceof Error ? error : new Error(String(error));
       this.handleDisconnection(name, error);
       throw error;
     }
   }
 
-  private setupTransportHandlers(name: string, connection: McpConnection, state: ConnectionState) {
+  private setupTransportHandlers(
+    name: string,
+    connection: McpConnection,
+    state: ConnectionState,
+  ) {
     connection.transport.onerror = async (error) => {
       logger.error(`Transport error for "${name}":`, error);
       connection.server.status = "disconnected";
@@ -195,7 +204,10 @@ export class McpService extends Service {
     if (state.pingInterval) clearInterval(state.pingInterval);
     state.pingInterval = setInterval(() => {
       this.sendPing(name).catch((err) => {
-        logger.warn(`Ping failed for ${name}:`, err instanceof Error ? err.message : String(err));
+        logger.warn(
+          `Ping failed for ${name}:`,
+          err instanceof Error ? err.message : String(err),
+        );
         this.handlePingFailure(name, err);
       });
     }, this.pingConfig.intervalMs);
@@ -207,7 +219,12 @@ export class McpService extends Service {
     // Use a lightweight call, e.g., listTools as a ping
     await Promise.race([
       connection.client.listTools(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Ping timeout")), this.pingConfig.timeoutMs)),
+      new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Ping timeout")),
+          this.pingConfig.timeoutMs,
+        ),
+      ),
     ]);
     // Reset ping failures on success
     const state = this.connectionStates.get(name);
@@ -218,8 +235,12 @@ export class McpService extends Service {
     const state = this.connectionStates.get(name);
     if (!state) return;
     state.consecutivePingFailures++;
-    if (state.consecutivePingFailures >= this.pingConfig.failuresBeforeDisconnect) {
-      logger.warn(`Ping failures exceeded for ${name}, disconnecting and attempting reconnect.`);
+    if (
+      state.consecutivePingFailures >= this.pingConfig.failuresBeforeDisconnect
+    ) {
+      logger.warn(
+        `Ping failures exceeded for ${name}, disconnecting and attempting reconnect.`,
+      );
       this.handleDisconnection(name, error);
     }
   }
@@ -235,16 +256,23 @@ export class McpService extends Service {
       logger.error(`Max reconnect attempts reached for ${name}. Giving up.`);
       return;
     }
-    const delay = INITIAL_RETRY_DELAY * Math.pow(BACKOFF_MULTIPLIER, state.reconnectAttempts);
+    const delay =
+      INITIAL_RETRY_DELAY *
+      Math.pow(BACKOFF_MULTIPLIER, state.reconnectAttempts);
     state.reconnectTimeout = setTimeout(async () => {
       state.reconnectAttempts++;
-      logger.info(`Attempting to reconnect to ${name} (attempt ${state.reconnectAttempts})...`);
+      logger.info(
+        `Attempting to reconnect to ${name} (attempt ${state.reconnectAttempts})...`,
+      );
       const config = this.connections.get(name)?.server.config;
       if (config) {
         try {
           await this.initializeConnection(name, JSON.parse(config));
         } catch (err) {
-          logger.error(`Reconnect attempt failed for ${name}:`, err instanceof Error ? err.message : String(err));
+          logger.error(
+            `Reconnect attempt failed for ${name}:`,
+            err instanceof Error ? err.message : String(err),
+          );
           this.handleDisconnection(name, err);
         }
       }
@@ -260,7 +288,7 @@ export class McpService extends Service {
       } catch (error) {
         logger.error(
           `Failed to close transport for ${name}:`,
-          error instanceof Error ? error.message : String(error)
+          error instanceof Error ? error.message : String(error),
         );
       }
       this.connections.delete(name);
@@ -277,7 +305,10 @@ export class McpService extends Service {
     return this.connections.get(serverName);
   }
 
-  private async buildStdioClientTransport(name: string, config: StdioMcpServerConfig) {
+  private async buildStdioClientTransport(
+    name: string,
+    config: StdioMcpServerConfig,
+  ) {
     if (!config.command) {
       throw new Error(`Missing command for stdio MCP server ${name}`);
     }
@@ -294,7 +325,10 @@ export class McpService extends Service {
     });
   }
 
-  private async buildSseClientTransport(name: string, config: SseMcpServerConfig) {
+  private async buildSseClientTransport(
+    name: string,
+    config: SseMcpServerConfig,
+  ) {
     if (!config.url) {
       throw new Error(`Missing URL for SSE MCP server ${name}`);
     }
@@ -303,7 +337,9 @@ export class McpService extends Service {
   }
 
   private appendErrorMessage(connection: McpConnection, error: string) {
-    const newError = connection.server.error ? `${connection.server.error}\n${error}` : error;
+    const newError = connection.server.error
+      ? `${connection.server.error}\n${error}`
+      : error;
     connection.server.error = newError;
   }
 
@@ -329,7 +365,7 @@ export class McpService extends Service {
     } catch (error) {
       logger.error(
         `Failed to fetch tools for ${serverName}:`,
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error.message : String(error),
       );
       return [];
     }
@@ -347,13 +383,15 @@ export class McpService extends Service {
     } catch (error) {
       logger.warn(
         `No resources found for ${serverName}:`,
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error.message : String(error),
       );
       return [];
     }
   }
 
-  private async fetchResourceTemplatesList(serverName: string): Promise<ResourceTemplate[]> {
+  private async fetchResourceTemplatesList(
+    serverName: string,
+  ): Promise<ResourceTemplate[]> {
     try {
       const connection = this.getServerConnection(serverName);
       if (!connection) {
@@ -365,7 +403,7 @@ export class McpService extends Service {
     } catch (error) {
       logger.warn(
         `No resource templates found for ${serverName}:`,
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error.message : String(error),
       );
       return [];
     }
@@ -384,7 +422,7 @@ export class McpService extends Service {
   public async callTool(
     serverName: string,
     toolName: string,
-    toolArguments?: Record<string, unknown>
+    toolArguments?: Record<string, unknown>,
   ): Promise<CallToolResult> {
     const connection = this.connections.get(serverName);
     if (!connection) {
@@ -400,13 +438,13 @@ export class McpService extends Service {
     } catch (error) {
       logger.error(
         `Failed to parse timeout configuration for server ${serverName}:`,
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error.message : String(error),
       );
     }
     const result = await connection.client.callTool(
       { name: toolName, arguments: toolArguments },
       undefined,
-      { timeout }
+      { timeout },
     );
     if (!result.content) {
       throw new Error("Invalid tool result: missing content array");
@@ -414,7 +452,10 @@ export class McpService extends Service {
     return result as CallToolResult;
   }
 
-  public async readResource(serverName: string, uri: string): Promise<McpResourceResponse> {
+  public async readResource(
+    serverName: string,
+    uri: string,
+  ): Promise<McpResourceResponse> {
     const connection = this.connections.get(serverName);
     if (!connection) {
       throw new Error(`No connection found for server: ${serverName}`);
@@ -439,7 +480,7 @@ export class McpService extends Service {
       } catch (error) {
         logger.error(
           `Failed to restart connection for ${serverName}:`,
-          error instanceof Error ? error.message : String(error)
+          error instanceof Error ? error.message : String(error),
         );
         throw new Error(`Failed to connect to ${serverName} MCP server`);
       }

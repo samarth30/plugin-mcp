@@ -13,7 +13,7 @@ const ajv = new Ajv({
 
 export function validateJsonSchema<T = unknown>(
   data: unknown,
-  schema: Record<string, unknown>
+  schema: Record<string, unknown>,
 ): { success: true; data: T } | { success: false; error: string } {
   try {
     const validate = ajv.compile(schema);
@@ -21,7 +21,9 @@ export function validateJsonSchema<T = unknown>(
 
     if (!valid) {
       const errors = (validate.errors || []).map((err) => {
-        const path = err.instancePath ? `${err.instancePath.replace(/^\//, "")}` : "value";
+        const path = err.instancePath
+          ? `${err.instancePath.replace(/^\//, "")}`
+          : "value";
         return `${path}: ${err.message}`;
       });
 

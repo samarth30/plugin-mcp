@@ -1,5 +1,9 @@
 import type { State } from "@elizaos/core-plugin-v2";
-import { type McpProviderData, ResourceSelectionSchema, ToolSelectionSchema } from "../types";
+import {
+  type McpProviderData,
+  ResourceSelectionSchema,
+  ToolSelectionSchema,
+} from "../types";
 import { validateJsonSchema } from "./json";
 
 export interface ToolSelection {
@@ -19,9 +23,12 @@ export interface ResourceSelection {
 
 export function validateToolSelection(
   selection: unknown,
-  composedState: State
+  composedState: State,
 ): { success: true; data: ToolSelection } | { success: false; error: string } {
-  const basicResult = validateJsonSchema<ToolSelection>(selection, ToolSelectionSchema);
+  const basicResult = validateJsonSchema<ToolSelection>(
+    selection,
+    ToolSelectionSchema,
+  );
   if (!basicResult.success) {
     return { success: false, error: basicResult.error };
   }
@@ -53,7 +60,7 @@ export function validateToolSelection(
   if (toolInfo.inputSchema) {
     const validationResult = validateJsonSchema(
       data.arguments,
-      toolInfo.inputSchema as Record<string, unknown>
+      toolInfo.inputSchema as Record<string, unknown>,
     );
 
     if (!validationResult.success) {
@@ -68,23 +75,27 @@ export function validateToolSelection(
 }
 
 export function validateResourceSelection(
-  selection: unknown
-): { success: true; data: ResourceSelection } | { success: false; error: string } {
-  return validateJsonSchema<ResourceSelection>(selection, ResourceSelectionSchema);
+  selection: unknown,
+):
+  | { success: true; data: ResourceSelection }
+  | { success: false; error: string } {
+  return validateJsonSchema<ResourceSelection>(
+    selection,
+    ResourceSelectionSchema,
+  );
 }
 
 export function createToolSelectionFeedbackPrompt(
   originalResponse: string,
   errorMessage: string,
   composedState: State,
-  userMessage: string
+  userMessage: string,
 ): string {
   let toolsDescription = "";
 
-  for (const [serverName, server] of Object.entries(composedState.values.mcp || {}) as [
-    string,
-    McpProviderData[string],
-  ][]) {
+  for (const [serverName, server] of Object.entries(
+    composedState.values.mcp || {},
+  ) as [string, McpProviderData[string]][]) {
     if (server.status !== "connected") continue;
 
     for (const [toolName, tool] of Object.entries(server.tools || {}) as [
@@ -101,7 +112,7 @@ export function createToolSelectionFeedbackPrompt(
     errorMessage,
     "tool",
     toolsDescription,
-    userMessage
+    userMessage,
   );
 }
 
@@ -109,14 +120,13 @@ export function createResourceSelectionFeedbackPrompt(
   originalResponse: string,
   errorMessage: string,
   composedState: State,
-  userMessage: string
+  userMessage: string,
 ): string {
   let resourcesDescription = "";
 
-  for (const [serverName, server] of Object.entries(composedState.values.mcp || {}) as [
-    string,
-    McpProviderData[string],
-  ][]) {
+  for (const [serverName, server] of Object.entries(
+    composedState.values.mcp || {},
+  ) as [string, McpProviderData[string]][]) {
     if (server.status !== "connected") continue;
 
     for (const [uri, resource] of Object.entries(server.resources || {}) as [
@@ -136,7 +146,7 @@ export function createResourceSelectionFeedbackPrompt(
     errorMessage,
     "resource",
     resourcesDescription,
-    userMessage
+    userMessage,
   );
 }
 
@@ -145,7 +155,7 @@ function createFeedbackPrompt(
   errorMessage: string,
   itemType: string,
   itemsDescription: string,
-  userMessage: string
+  userMessage: string,
 ): string {
   return `Error parsing JSON: ${errorMessage}
 

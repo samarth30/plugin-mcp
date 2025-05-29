@@ -19,18 +19,20 @@ import { parseJSON } from "./json";
 export async function withModelRetry<T>(
   initialInput: string,
   runtime: IAgentRuntime,
-  validationFn: (data: unknown) => { success: true; data: T } | { success: false; error: string },
+  validationFn: (
+    data: unknown,
+  ) => { success: true; data: T } | { success: false; error: string },
   message: Memory,
   composedState: State,
   createFeedbackPromptFn: (
     originalResponse: string,
     errorMessage: string,
     composedState: State,
-    userMessage: string
+    userMessage: string,
   ) => string,
   callback?: HandlerCallback,
   failureMsg?: string,
-  retryCount = 0
+  retryCount = 0,
 ): Promise<T | null> {
   const maxRetries = getMaxRetries(runtime);
 
@@ -48,7 +50,10 @@ export async function withModelRetry<T>(
 
     return validationResult.data;
   } catch (parseError) {
-    const errorMessage = parseError instanceof Error ? parseError.message : "Unknown parsing error";
+    const errorMessage =
+      parseError instanceof Error
+        ? parseError.message
+        : "Unknown parsing error";
 
     logger.error("Failed to parse response:", errorMessage);
 
@@ -59,7 +64,7 @@ export async function withModelRetry<T>(
         initialInput,
         errorMessage,
         composedState,
-        message.content.text || ""
+        message.content.text || "",
       );
 
       const retrySelection = await runtime.useModel(ModelType.TEXT_SMALL, {
@@ -75,7 +80,7 @@ export async function withModelRetry<T>(
         createFeedbackPromptFn,
         callback,
         failureMsg,
-        retryCount + 1
+        retryCount + 1,
       );
     }
 
@@ -94,7 +99,11 @@ export async function withModelRetry<T>(
 export function getMaxRetries(runtime: IAgentRuntime): number {
   try {
     const settings = runtime.getSetting("mcp");
-    if (settings && "maxRetries" in settings && settings.maxRetries !== undefined) {
+    if (
+      settings &&
+      "maxRetries" in settings &&
+      settings.maxRetries !== undefined
+    ) {
       const configValue = Number(settings.maxRetries);
       if (!Number.isNaN(configValue) && configValue >= 0) {
         logger.info(`Using configured selection retries: ${configValue}`);
@@ -104,7 +113,7 @@ export function getMaxRetries(runtime: IAgentRuntime): number {
   } catch (error) {
     logger.debug(
       "Error reading selection retries config:",
-      error instanceof Error ? error.message : String(error)
+      error instanceof Error ? error.message : String(error),
     );
   }
 
@@ -114,7 +123,7 @@ export function getMaxRetries(runtime: IAgentRuntime): number {
 export async function handleNoSelectionAvailable<T>(
   selection: T & { noToolAvailable?: boolean; noResourceAvailable?: boolean },
   callback?: HandlerCallback,
-  message = "I don't have a specific item that can help with that request. Let me try to assist you directly instead."
+  message = "I don't have a specific item that can help with that request. Let me try to assist you directly instead.",
 ): Promise<boolean> {
   if (selection.noToolAvailable || selection.noResourceAvailable) {
     if (callback) {
@@ -136,7 +145,7 @@ export async function createMcpMemory(
   type: string,
   serverName: string,
   content: string,
-  metadata: Record<string, unknown>
+  metadata: Record<string, unknown>,
 ): Promise<void> {
   const memory = await runtime.addEmbeddingToMemory({
     entityId: message.entityId,
@@ -152,7 +161,11 @@ export async function createMcpMemory(
     },
   });
 
-  await runtime.createMemory(memory, type === "resource" ? "resources" : "tools", true);
+  await runtime.createMemory(
+    memory,
+    type === "resource" ? "resources" : "tools",
+    true,
+  );
 }
 
 export function buildMcpProviderData(servers: McpServer[]): McpProvider {

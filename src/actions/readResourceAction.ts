@@ -24,7 +24,10 @@ import {
 } from "../utils/validation";
 import type { ResourceSelection } from "../utils/validation";
 
-function createResourceSelectionPrompt(composedState: State, userMessage: string): string {
+function createResourceSelectionPrompt(
+  composedState: State,
+  userMessage: string,
+): string {
   const mcpData = composedState.values.mcp || {};
   const serverNames = Object.keys(mcpData);
 
@@ -73,7 +76,11 @@ export const readResourceAction: Action = {
   ],
   description: "Reads a resource from an MCP server",
 
-  validate: async (runtime: IAgentRuntime, _message: Memory, _state?: State): Promise<boolean> => {
+  validate: async (
+    runtime: IAgentRuntime,
+    _message: Memory,
+    _state?: State,
+  ): Promise<boolean> => {
     const mcpService = runtime.getService<McpService>(MCP_SERVICE_NAME);
     if (!mcpService) return false;
 
@@ -81,7 +88,10 @@ export const readResourceAction: Action = {
     return (
       servers.length > 0 &&
       servers.some(
-        (server) => server.status === "connected" && server.resources && server.resources.length > 0
+        (server) =>
+          server.status === "connected" &&
+          server.resources &&
+          server.resources.length > 0,
       )
     );
   },
@@ -91,9 +101,12 @@ export const readResourceAction: Action = {
     message: Memory,
     _state?: State,
     _options?: { [key: string]: unknown },
-    callback?: HandlerCallback
+    callback?: HandlerCallback,
   ): Promise<boolean> => {
-    const composedState = await runtime.composeState(message, ["RECENT_MESSAGES", "MCP"]);
+    const composedState = await runtime.composeState(message, [
+      "RECENT_MESSAGES",
+      "MCP",
+    ]);
 
     const mcpService = runtime.getService<McpService>(MCP_SERVICE_NAME);
     if (!mcpService) {
@@ -107,7 +120,7 @@ export const readResourceAction: Action = {
 
       const resourceSelectionPrompt = createResourceSelectionPrompt(
         composedState,
-        message.content.text || ""
+        message.content.text || "",
       );
 
       const resourceSelection = await runtime.useModel(ModelType.TEXT_SMALL, {
@@ -121,9 +134,14 @@ export const readResourceAction: Action = {
         message,
         composedState,
         (originalResponse, errorMessage, state, userMessage) =>
-          createResourceSelectionFeedbackPrompt(originalResponse, errorMessage, state, userMessage),
+          createResourceSelectionFeedbackPrompt(
+            originalResponse,
+            errorMessage,
+            state,
+            userMessage,
+          ),
         callback,
-        "I'm having trouble figuring out where to find the information you're looking for. Could you provide more details about what you need?"
+        "I'm having trouble figuring out where to find the information you're looking for. Could you provide more details about what you need?",
       );
 
       if (!parsedSelection || parsedSelection.noResourceAvailable) {
@@ -140,12 +158,17 @@ export const readResourceAction: Action = {
 
       const { serverName, uri, reasoning } = parsedSelection;
 
-      logger.debug(`Selected resource "${uri}" on server "${serverName}" because: ${reasoning}`);
+      logger.debug(
+        `Selected resource "${uri}" on server "${serverName}" because: ${reasoning}`,
+      );
 
       const result = await mcpService.readResource(serverName, uri);
       logger.debug(`Read resource ${uri} from server ${serverName}`);
 
-      const { resourceContent, resourceMeta } = processResourceResult(result, uri);
+      const { resourceContent, resourceMeta } = processResourceResult(
+        result,
+        uri,
+      );
 
       await handleResourceAnalysis(
         runtime,
@@ -154,7 +177,7 @@ export const readResourceAction: Action = {
         serverName,
         resourceContent,
         resourceMeta,
-        callback
+        callback,
       );
 
       return true;
@@ -166,7 +189,7 @@ export const readResourceAction: Action = {
         runtime,
         message,
         "resource",
-        callback
+        callback,
       );
     }
   },

@@ -5,7 +5,7 @@ import {
   ModelType,
   composePromptFromState,
   logger,
-  type  State 
+  type State,
 } from "@elizaos/core-plugin-v2";
 import { errorAnalysisPrompt } from "../templates/errorAnalysisPrompt";
 import type { McpProvider } from "../types";
@@ -17,7 +17,7 @@ export async function handleMcpError(
   runtime: IAgentRuntime,
   message: Memory,
   type: "tool" | "resource",
-  callback?: HandlerCallback
+  callback?: HandlerCallback,
 ): Promise<boolean> {
   const errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -52,7 +52,7 @@ export async function handleMcpError(
     } catch (modelError) {
       logger.error(
         "Failed to generate error response:",
-        modelError instanceof Error ? modelError.message : String(modelError)
+        modelError instanceof Error ? modelError.message : String(modelError),
       );
 
       await callback({
@@ -69,7 +69,7 @@ export async function handleMcpError(
 export class McpError extends Error {
   constructor(
     message: string,
-    public readonly code: string = "UNKNOWN"
+    public readonly code: string = "UNKNOWN",
   ) {
     super(message);
     this.name = "McpError";
@@ -78,18 +78,21 @@ export class McpError extends Error {
   static connectionError(serverName: string, details?: string): McpError {
     return new McpError(
       `Failed to connect to server '${serverName}'${details ? `: ${details}` : ""}`,
-      "CONNECTION_ERROR"
+      "CONNECTION_ERROR",
     );
   }
 
   static toolNotFound(toolName: string, serverName: string): McpError {
-    return new McpError(`Tool '${toolName}' not found on server '${serverName}'`, "TOOL_NOT_FOUND");
+    return new McpError(
+      `Tool '${toolName}' not found on server '${serverName}'`,
+      "TOOL_NOT_FOUND",
+    );
   }
 
   static resourceNotFound(uri: string, serverName: string): McpError {
     return new McpError(
       `Resource '${uri}' not found on server '${serverName}'`,
-      "RESOURCE_NOT_FOUND"
+      "RESOURCE_NOT_FOUND",
     );
   }
 
@@ -100,7 +103,7 @@ export class McpError extends Error {
   static serverError(serverName: string, details?: string): McpError {
     return new McpError(
       `Server error from '${serverName}'${details ? `: ${details}` : ""}`,
-      "SERVER_ERROR"
+      "SERVER_ERROR",
     );
   }
 }
