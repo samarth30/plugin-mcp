@@ -7,8 +7,8 @@ import {
   ModelType,
   createUniqueUuid,
   logger,
+  type State, composePromptFromState
 } from "@elizaos/core-plugin-v2";
-import { type State, composePromptFromState } from "@elizaos/core-plugin-v2";
 import { resourceAnalysisTemplate } from "../templates/resourceAnalysisTemplate";
 import { toolReasoningTemplate } from "../templates/toolReasoningTemplate";
 import { createMcpMemory } from "./mcp";

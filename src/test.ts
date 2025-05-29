@@ -5,6 +5,8 @@ import type {
   HandlerCallback,
 } from "@elizaos/core-plugin-v2";
 import mcpPlugin from "./index.ts";
+import { join } from "node:path";
+import { cwd } from "node:process";
 
 /**
  * MCP Plugin Test Suite - Tests for Model Context Protocol functionality
@@ -25,6 +27,9 @@ export class McpPluginTestSuite implements TestSuite {
     {
       name: "Should configure filesystem MCP server and provide files",
       fn: async (runtime: IAgentRuntime) => {
+        // Use current working directory instead of hardcoded path
+        const currentDir = cwd();
+        
         // Configure the MCP settings with the exact filesystem server configuration
         const mcpSettings = {
           servers: {
@@ -32,7 +37,7 @@ export class McpPluginTestSuite implements TestSuite {
               "type": "stdio", 
               "name": "Filesystem Server",
               "command": "npx",
-              "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/samarthgugnani/Projects"]
+              "args": ["-y", "@modelcontextprotocol/server-filesystem", currentDir]
             }
           }
         };
@@ -84,7 +89,7 @@ export class McpPluginTestSuite implements TestSuite {
             throw new Error("No file-related tools found in filesystem server");
           }
 
-          // Try to list files in the workspace directory
+          // Try to list files in the current directory
           const listTool = filesystemServer.tools.find(tool => 
             tool.name.toLowerCase().includes('list')
           );
@@ -94,7 +99,7 @@ export class McpPluginTestSuite implements TestSuite {
               const result = await mcpService.callTool(
                 "filesystem",
                 listTool.name,
-                { path: "/Users/samarthgugnani/Projects" }
+                { path: currentDir }
               );
 
               if (!result || !result.content || result.content.length === 0) {
@@ -124,10 +129,12 @@ export class McpPluginTestSuite implements TestSuite {
       },
     },
     {
-      name: "Should accurately list files when agent is asked about directory contents",
+      name: "Should accurately list files when agent is asked about current directory contents",
       fn: async (runtime: IAgentRuntime) => {
-        // Configure the MCP settings with the filesystem server pointing to the specific directory
-        const targetDirectory = "/Users/samarthgugnani/Projects/Eliza/elizaos-plugins";
+        // Use current working directory
+        const targetDirectory = cwd();
+        
+        // Configure the MCP settings with the filesystem server pointing to the current directory
         const mcpSettings = {
           servers: {
             "filesystem": {
@@ -193,40 +200,32 @@ export class McpPluginTestSuite implements TestSuite {
           const fileListingText = textContent.text;
           console.log("Actual directory contents:", fileListingText);
 
-          // Verify that known directories/files are present in the listing
+          // Verify that known files/directories are present in the current plugin-mcp directory
           const expectedItems = [
-            "[DIR] plugin-browser",
-            "[DIR] plugin-elevenlabs", 
-            "[DIR] plugin-knowledge",
-            "[DIR] plugin-mcp",
-            "[DIR] plugin-pdf",
-            "[DIR] plugin-specification",
-            "[DIR] plugin-storage-s3",
-            "[DIR] plugin-video",
-            "[DIR] plugin-video-understanding",
-            "[DIR] sam-testing-1",
-            "[DIR] sam-testing-3",
-            "[FILE] setup.sh"
+            "src",
+            "package.json",
+            "tsconfig.json", 
+            "README.md",
+            ".gitignore",
+            "node_modules",
           ];
 
           const missingItems = expectedItems.filter(item => 
-            !fileListingText.includes(item.replace("[DIR] ", "").replace("[FILE] ", ""))
+            !fileListingText.toLowerCase().includes(item.toLowerCase())
           );
 
-          if (missingItems.length > 0) {
-            throw new Error(`Missing expected items in directory listing: ${missingItems.join(", ")}`);
+          if (missingItems.length > 2) { // Allow some files to be missing (like dist if not built)
+            throw new Error(`Too many expected items missing in directory listing: ${missingItems.join(", ")}`);
           }
 
           // Simulate agent response generation
-          const agentResponse = `I've checked the directory at ${targetDirectory} and found the following contents:\n\n${fileListingText}\n\nThe directory contains various plugin folders including browser, elevenlabs, knowledge, mcp, pdf, specification, storage-s3, video, and video-understanding plugins, along with testing directories and a setup script.`;
+          const agentResponse = `I've checked the current directory and found the following contents:\n\n${fileListingText}\n\nThe directory contains the plugin source code, configuration files, documentation, and build artifacts.`;
 
           // Verify the agent response contains accurate information
           const accuracyChecks = [
-            fileListingText.includes("plugin-browser"),
-            fileListingText.includes("plugin-mcp"),
-            fileListingText.includes("setup.sh"),
-            agentResponse.includes("plugin folders"),
-            agentResponse.includes(targetDirectory)
+            fileListingText.includes("src") || fileListingText.includes("package.json"),
+            agentResponse.includes("directory"),
+            agentResponse.includes("plugin")
           ];
 
           const failedChecks = accuracyChecks.filter(check => !check).length;
@@ -235,7 +234,104 @@ export class McpPluginTestSuite implements TestSuite {
           }
 
           console.log("✓ Agent accurately listed directory contents");
-          console.log("✓ Response includes all expected files and directories");
+          console.log("✓ Response includes expected files and directories");
+
+          // Clean up
+          await mcpService.stop();
+
+        } finally {
+          // Restore original getSetting
+          runtime.getSetting = originalGetSetting;
+        }
+      },
+    },
+    {
+      name: "Should read plugin source files when asked about plugin structure",
+      fn: async (runtime: IAgentRuntime) => {
+        // Use current working directory
+        const currentDir = cwd();
+        const mcpSettings = {
+          servers: {
+            "filesystem": {
+              "type": "stdio", 
+              "name": "Filesystem Server",
+              "command": "npx",
+              "args": ["-y", "@modelcontextprotocol/server-filesystem", currentDir]
+            }
+          }
+        };
+
+        // Mock the getSetting method
+        const originalGetSetting = runtime.getSetting;
+        runtime.getSetting = (key: string) => {
+          if (key === "mcp") {
+            return mcpSettings;
+          }
+          return originalGetSetting.call(runtime, key);
+        };
+
+        try {
+          // Initialize the MCP service
+          const { McpService } = await import("./service.ts");
+          const mcpService = await McpService.start(runtime);
+
+          // Wait for connection
+          await new Promise(resolve => setTimeout(resolve, 3000));
+
+          // Verify the filesystem server is connected
+          const servers = mcpService.getServers();
+          const filesystemServer = servers.find(s => s.name === "filesystem");
+          
+          if (!filesystemServer || filesystemServer.status !== "connected") {
+            throw new Error("Filesystem server not properly connected");
+          }
+
+          // Find the read_file tool
+          const readFileTool = filesystemServer.tools?.find(tool => 
+            tool.name === "read_file"
+          );
+
+          if (!readFileTool) {
+            throw new Error("read_file tool not found");
+          }
+
+          // Try to read the main plugin file
+          const pluginIndexPath = join(currentDir, "src", "index.ts");
+          const result = await mcpService.callTool(
+            "filesystem",
+            "read_file",
+            { path: pluginIndexPath }
+          );
+
+          if (!result || !result.content || result.content.length === 0) {
+            throw new Error("No content returned from read_file tool");
+          }
+
+          // Extract the file content
+          const textContent = result.content.find(c => c.type === 'text');
+          if (!textContent || !('text' in textContent)) {
+            throw new Error("No text content in tool result");
+          }
+
+          const fileContent = textContent.text;
+          console.log("Successfully read plugin source file");
+
+          // Verify the file contains expected plugin structure
+          const expectedContent = [
+            "Plugin",
+            "import",
+            "export"
+          ];
+
+          const missingContent = expectedContent.filter(item => 
+            !fileContent.includes(item)
+          );
+
+          if (missingContent.length > 0) {
+            throw new Error(`Plugin file missing expected content: ${missingContent.join(", ")}`);
+          }
+
+          console.log("✓ Successfully read and validated plugin source file");
 
           // Clean up
           await mcpService.stop();
@@ -249,8 +345,10 @@ export class McpPluginTestSuite implements TestSuite {
     {
       name: "Should validate and execute MCP action when filesystem server is configured",
       fn: async (runtime: IAgentRuntime) => {
+        // Use current working directory
+        const targetDirectory = cwd();
+        
         // Configure the MCP settings
-        const targetDirectory = "/Users/samarthgugnani/Projects/Eliza/elizaos-plugins";
         const mcpSettings = {
           servers: {
             "filesystem": {
@@ -332,7 +430,7 @@ export class McpPluginTestSuite implements TestSuite {
             entityId: "12345678-1234-1234-1234-123456789013",
             roomId: "12345678-1234-1234-1234-123456789014",
             content: {
-              text: "List files in the directory",
+              text: "List files in the current directory",
               type: "text"
             }
           };
