@@ -5,11 +5,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
-  "version": "1.0.0-beta.54",
+  "version": "1.0.0-beta.55",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/elizaos-plugins/plugin-mcp.git"
+    "url": "https://github.com/elizaos-plugins/plugin-mcp.git"
   },
   "publishConfig": {
     "access": "public"
