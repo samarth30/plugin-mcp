@@ -206,14 +206,74 @@ export const readResourceAction: Action = {
         name: "{{assistant}}",
         content: {
           text: `I'll retrieve that information for you. Let me access the resource...`,
-          actions: ["READ_MCP_RESOURCE"],
+          actions: ["READ_RESOURCE"],
         },
       },
       {
         name: "{{assistant}}",
         content: {
           text: `ElizaOS installation is straightforward. You'll need Node.js 23+ and Git installed. For Windows users, WSL 2 is required. The quickest way to get started is by cloning the ElizaOS starter repository with \`git clone https://github.com/elizaos/eliza-starter.git\`, then run \`cd eliza-starter && cp .env.example .env && bun i && bun run build && bun start\`. This will set up a development environment with the core features enabled. After starting, you can access the web interface at http://localhost:3000 to interact with your agent.`,
-          actions: ["READ_MCP_RESOURCE"],
+          actions: ["READ_RESOURCE"],
+        },
+      },
+    ],
+    [
+      {
+        name: "{{user}}",
+        content: {
+          text: "Show me the API documentation for the MCP plugin",
+        },
+      },
+      {
+        name: "{{assistant}}",
+        content: {
+          text: "I'll fetch the API documentation for you.",
+          actions: ["READ_RESOURCE"],
+        },
+      },
+    ],
+    [
+      {
+        name: "{{user}}",
+        content: {
+          text: "What does the configuration file contain?",
+        },
+      },
+      {
+        name: "{{assistant}}",
+        content: {
+          text: "Let me read the configuration file to show you its contents.",
+          actions: ["READ_RESOURCE"],
+        },
+      },
+    ],
+    [
+      {
+        name: "{{user}}",
+        content: {
+          text: "Tell me about the project README",
+        },
+      },
+      {
+        name: "{{assistant}}",
+        content: {
+          text: "I'll retrieve the README file to tell you about the project.",
+          actions: ["READ_RESOURCE"],
+        },
+      },
+    ],
+    [
+      {
+        name: "{{user}}",
+        content: {
+          text: "Get me the troubleshooting guide",
+        },
+      },
+      {
+        name: "{{assistant}}",
+        content: {
+          text: "I'll access the troubleshooting guide for you.",
+          actions: ["READ_RESOURCE"],
         },
       },
     ],

@@ -211,14 +211,59 @@ export const callToolAction: Action = {
         name: "{{assistant}}",
         content: {
           text: "I'll help you with that request. Let me access the right tool...",
-          actions: ["CALL_MCP_TOOL"],
+          actions: ["CALL_TOOL"],
         },
       },
       {
         name: "{{assistant}}",
         content: {
           text: "I found the following information about climate change:\n\nClimate change refers to long-term shifts in temperatures and weather patterns. These shifts may be natural, but since the 1800s, human activities have been the main driver of climate change, primarily due to the burning of fossil fuels like coal, oil, and gas, which produces heat-trapping gases.",
-          actions: ["CALL_MCP_TOOL"],
+          actions: ["CALL_TOOL"],
+        },
+      },
+    ],
+    [
+      {
+        name: "{{user}}",
+        content: {
+          text: "I need help analyzing this data file",
+        },
+      },
+      {
+        name: "{{assistant}}",
+        content: {
+          text: "I'll analyze that data for you using the appropriate tool.",
+          actions: ["CALL_TOOL"],
+        },
+      },
+    ],
+    [
+      {
+        name: "{{user}}",
+        content: {
+          text: "Can you help me calculate the compound interest?",
+        },
+      },
+      {
+        name: "{{assistant}}",
+        content: {
+          text: "I'll use a calculation tool to help you with the compound interest.",
+          actions: ["CALL_TOOL"],
+        },
+      },
+    ],
+    [
+      {
+        name: "{{user}}",
+        content: {
+          text: "Find me the latest news about AI",
+        },
+      },
+      {
+        name: "{{assistant}}",
+        content: {
+          text: "Let me search for the latest AI news for you.",
+          actions: ["CALL_TOOL"],
         },
       },
     ],
