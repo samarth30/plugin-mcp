@@ -11,7 +11,6 @@ The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) is an open p
 This plugin allows your ElizaOS agents to access multiple MCP servers simultaneously, each providing different capabilities:
 
 - **Resources**: Context and data for the agent to reference
-- **Prompts**: Templated messages and workflows
 - **Tools**: Functions for the agent to execute
 
 ## 📦 Installation
@@ -55,7 +54,6 @@ bun add @elizaos/plugin-mcp
       "servers": {
         "github": {
           "type": "stdio",
-          "name": "Code Server",
           "command": "npx",
           "args": ["-y", "@modelcontextprotocol/server-github"]
         }
@@ -67,41 +65,81 @@ bun add @elizaos/plugin-mcp
 
 ## ⚙️ Configuration Options
 
-MCP supports two types of servers: "stdio" and "sse". Each type has its own configuration options.
+MCP supports multiple transport types for connecting to servers. Each type has its own configuration options.
 
-### Common Options
+### Transport Types
 
-| Option     | Type    | Description                                     |
-| ---------- | ------- | ----------------------------------------------- |
-| `type`     | string  | The type of MCP server: "stdio" or "sse"        |
-| `name`     | string  | The display name of the server                  |
-| `timeout`  | number  | Timeout in seconds for tool calls (default: 60) |
-| `disabled` | boolean | Whether the server is disabled                  |
+- **`streamable-http`** or **`http`** - Modern Streamable HTTP transport (recommended)
+- **`sse`** - Legacy Server-Sent Events transport (deprecated, use `streamable-http` instead)  
+- **`stdio`** - Process-based transport using standard input/output
 
-### stdio Server Options
-
-| Option    | Type     | Description                                       |
-| --------- | -------- | ------------------------------------------------- |
-| `command` | string   | The command to run the MCP server                 |
-| `args`    | string[] | Command-line arguments for the server             |
-| `env`     | object   | Environment variables to pass to the server       |
-| `cwd`     | string   | _Optional_ Working directory to run the server in |
-
-### sse Server Options
+### HTTP Transport Options (streamable-http, http, sse)
 
 | Option    | Type   | Description                            |
 | --------- | ------ | -------------------------------------- |
-| `url`     | string | The URL of the SSE endpoint            |
+| `type`    | string | Transport type: "streamable-http", "http", or "sse" |
+| `url`     | string | The URL of the HTTP/SSE endpoint       |
+| `timeout` | number | _Optional_ Timeout for connections     |
+
+### stdio Transport Options
+
+| Option           | Type     | Description                                       |
+| ---------------- | -------- | ------------------------------------------------- |
+| `type`           | string   | Must be "stdio"                                   |
+| `command`        | string   | _Optional_ The command to run the MCP server      |
+| `args`           | string[] | _Optional_ Command-line arguments for the server  |
+| `env`            | object   | _Optional_ Environment variables to pass to the server |
+| `cwd`            | string   | _Optional_ Working directory to run the server in |
+| `timeoutInMillis`| number   | _Optional_ Timeout in milliseconds for tool calls |
+
+### Example Configuration
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "my-modern-server": {
+        "type": "streamable-http",
+        "url": "https://example.com/mcp"
+      },
+      "my-local-server": {
+        "type": "http",
+        "url": "http://localhost:3000",
+        "timeout": 30
+      },
+      "my-legacy-server": {
+        "type": "sse",
+        "url": "http://localhost:8080"
+      },
+      "my-stdio-server": {
+        "type": "stdio",
+        "command": "mcp-server",
+        "args": ["--config", "config.json"],
+        "cwd": "/path/to/server",
+        "timeoutInMillis": 60000
+      }
+    },
+    "maxRetries": 3
+  }
+}
+```
 
 ## 🛠️ Using MCP Capabilities
 
 Once configured, the plugin automatically exposes MCP servers' capabilities to your agent:
 
-### Context Providers
+### Context Provider
 
-The plugin includes three providers that add MCP capabilities to the agent's context:
+The plugin includes one provider that adds MCP capabilities to the agent's context:
 
-1. `MCP_SERVERS`: Lists available servers and their tools, resources and prompts
+1. **`MCP`**: Lists available servers and their tools and resources
+
+### Actions
+
+The plugin provides two actions for interacting with MCP servers:
+
+1. **`CALL_TOOL`**: Executes tools from connected MCP servers
+2. **`READ_RESOURCE`**: Accesses resources from connected MCP servers
 
 ## 🔄 Plugin Flow
 
@@ -168,6 +206,7 @@ Here's a complete example configuration with multiple MCP servers of both types:
     "mcp": {
       "servers": {
         "github": {
+          "type": "stdio",
           "command": "npx",
           "args": ["-y", "@modelcontextprotocol/server-github"],
           "env": {
@@ -175,10 +214,12 @@ Here's a complete example configuration with multiple MCP servers of both types:
           }
         },
         "puppeteer": {
+          "type": "stdio",
           "command": "npx",
           "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
         },
         "google-maps": {
+          "type": "stdio",
           "command": "npx",
           "args": ["-y", "@modelcontextprotocol/server-google-maps"],
           "env": {

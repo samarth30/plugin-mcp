@@ -24,7 +24,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/elizaos-plugins/plugin-mcp.git"
+    "url": "git+https://github.com/elizaos-plugins/plugin-mcp.git"
   },
   "tags": [
     "mcp",
@@ -45,13 +45,14 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@types/bun": "1.2.5",
+    "@types/json-schema": "^7.0.15",
     "bumpp": "10.1.0",
     "prettier": "3.5.3",
     "tsup": "^8.4.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@elizaos/core-plugin-v2": "^1.0.0-beta",
+    "@elizaos/core": "^1.0.0",
     "@modelcontextprotocol/sdk": "^1.7.0",
     "ajv": "^8.17.1",
     "json5": "^2.2.3"

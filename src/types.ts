@@ -41,13 +41,13 @@ export type StdioMcpServerConfig = {
   timeoutInMillis?: number;
 };
 
-export type SseMcpServerConfig = {
-  type: "sse";
+export type HttpMcpServerConfig = {
+  type: "http" | "streamable-http" | "sse"; // Support modern and legacy naming
   url: string;
   timeout?: number;
 };
 
-export type McpServerConfig = StdioMcpServerConfig | SseMcpServerConfig;
+export type McpServerConfig = StdioMcpServerConfig | HttpMcpServerConfig;
 
 export type McpSettings = {
   servers: Record<string, McpServerConfig>;
